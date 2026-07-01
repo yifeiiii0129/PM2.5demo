@@ -81,6 +81,9 @@ const text = {
     teamEyebrow: "团队",
     teamTitle: "技术团队与主要贡献者",
     teamBody: "Qianru Zhang",
+    teamDrew: "Drew Shindell",
+    teamYifei: "颜翼飞",
+    teamQianru: "张倩茹",
   },
   en: {
     eyebrow: "PM2.5 mortality explorer",
@@ -141,6 +144,9 @@ const text = {
     teamEyebrow: "Team",
     teamTitle: "Technical team and contributors",
     teamBody: "Qianru Zhang",
+    teamDrew: "Drew Shindell",
+    teamYifei: "Yifei Yan",
+    teamQianru: "Qianru Zhang",
   },
 };
 
@@ -254,6 +260,12 @@ const countryDisplayEn = {
 
 const countryDisplayZh = {
   "China Taiwan": "中国台湾",
+  "Hong Kong": "中国香港",
+  "Hong Kong S.A.R.": "中国香港",
+  Macau: "中国澳门",
+  Macao: "中国澳门",
+  "Macau S.A.R": "中国澳门",
+  "Macao S.A.R.": "中国澳门",
   "United Sts.of America": "美国",
   "Russian Fed.": "俄罗斯",
   "Boliv.Rep.of Venezuela": "委内瑞拉",
@@ -280,6 +292,7 @@ const countryDisplayZh = {
 };
 
 const cityDisplayZh = {
+  "Hong Kong": "香港", Macau: "澳门", Macao: "澳门",
   Zhongli: "中坜", Hsinchu: "新竹", "New Taipei": "新北", Tainan: "台南", Taichung: "台中", Kaohsiung: "高雄", Taipei: "台北",
   Beijing: "北京", Shanghai: "上海", Tianjin: "天津", Chongqing: "重庆", Guangzhou: "广州", Shenzhen: "深圳", Dongguan: "东莞",
   Wuhan: "武汉", Chengdu: "成都", Nanjing: "南京", Hangzhou: "杭州", Xian: "西安", Zhengzhou: "郑州", Changsha: "长沙",
@@ -461,11 +474,24 @@ function isTaiwanFeature(feature) {
   return geoCountryName(feature) === "Taiwan";
 }
 
+function chinaCityCountryNames() {
+  return ["China", "Taiwan", "Hong Kong", "Hong Kong S.A.R.", "Macau", "Macau S.A.R", "Macao", "Macao S.A.R."];
+}
+
 function getAgeData(item) {
   return item && item.ages && item.ages[selectedAge] ? item.ages[selectedAge] : {};
 }
 
 function getCitiesForCountry(countryName) {
+  if (countryName === "China") {
+    const seen = new Set();
+    return chinaCityCountryNames().flatMap((name) => citiesByCountry.get(name) || []).filter((city) => {
+      const key = cityKey(city);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
   return citiesByCountry.get(countryName) || citiesByCountry.get(countryToCityAliases[countryName]) || [];
 }
 
@@ -523,7 +549,14 @@ function displayCityName(city) {
 }
 
 function displayCityLocation(city) {
-  const sourceCountry = city.country === "Taiwan" ? "China Taiwan" : city.country;
+  const sourceCountry =
+    city.country === "Taiwan"
+      ? "China Taiwan"
+      : city.country === "Hong Kong" || city.country === "Hong Kong S.A.R."
+        ? "Hong Kong"
+        : city.country === "Macau" || city.country === "Macau S.A.R" || city.country === "Macao" || city.country === "Macao S.A.R."
+          ? "Macau"
+          : city.country;
   const countryName =
     language === "zh"
       ? countryDisplayZh[sourceCountry] || localizedCountryName(sourceCountry) || sourceCountry
