@@ -1,0 +1,2 @@
+window.BOUNDARY_CHUNKS = window.BOUNDARY_CHUNKS || {};
+window.BOUNDARY_CHUNKS["adm1-122"] = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"shapeName":"Koualou","shapeID":"DIS012","shapeGroup":"122","shapeType":"DISP"},"geometry":{"type":"Polygon","coordinates":[[[0.916762263000066,11.000073875000055],[0.971730927000067,10.999999753000054],[0.916666601000031,10.99999996300005],[0.916762263000066,11.000073875000055]]]}}]};

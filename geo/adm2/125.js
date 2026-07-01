@@ -1,0 +1,2 @@
+window.BOUNDARY_CHUNKS = window.BOUNDARY_CHUNKS || {};
+window.BOUNDARY_CHUNKS["adm2-125"] = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"shapeName":"Paracel Is","shapeID":"DIS015","shapeGroup":"125","shapeType":"DISP"},"geometry":{"type":"Polygon","coordinates":[[[112.3265533450001,16.84199905400004],[112.33827972400002,16.831193925000036],[112.32283020000011,16.831583024000054],[112.3265533450001,16.84199905400004]]]}}]};

@@ -1,0 +1,2 @@
+window.BOUNDARY_CHUNKS = window.BOUNDARY_CHUNKS || {};
+window.BOUNDARY_CHUNKS["adm2-128"] = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"shapeName":"Spratly Is","shapeID":"DIS018","shapeGroup":"128","shapeType":"DISP"},"geometry":{"type":"Polygon","coordinates":[[[114.33499908400006,11.444527626000024],[114.3375015260001,11.43791675500006],[114.3341369630001,11.437944412000036],[114.33499908400006,11.444527626000024]]]}}]};

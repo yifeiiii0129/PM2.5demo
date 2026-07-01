@@ -1,0 +1,2 @@
+window.BOUNDARY_CHUNKS = window.BOUNDARY_CHUNKS || {};
+window.BOUNDARY_CHUNKS["adm2-116"] = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"shapeName":"Dramana-Shakatoe","shapeID":"DIS006","shapeGroup":"116","shapeType":"DISP"},"geometry":{"type":"Polygon","coordinates":[[[89.16213193073109,27.577150223577068],[89.101857,27.522863],[89.00408107300007,27.52341533400005],[89.07288594700003,27.60933254500003],[89.16213193073109,27.577150223577068]]]}}]};

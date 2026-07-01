@@ -1,0 +1,2 @@
+window.BOUNDARY_CHUNKS = window.BOUNDARY_CHUNKS || {};
+window.BOUNDARY_CHUNKS["adm2-114"] = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"shapeName":"Demchok","shapeID":"DIS004","shapeGroup":"114","shapeType":"DISP"},"geometry":{"type":"Polygon","coordinates":[[[79.331457,33.000793],[79.548375,32.676552],[79.413331,32.520026001000076],[79.267681,32.559018],[79.241892,32.943028],[79.138206,33.025245],[79.182862,33.22001],[79.408646,33.188396],[79.331457,33.000793]]]}}]};

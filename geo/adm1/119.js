@@ -1,0 +1,2 @@
+window.BOUNDARY_CHUNKS = window.BOUNDARY_CHUNKS || {};
+window.BOUNDARY_CHUNKS["adm1-119"] = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"shapeName":"Kalapani","shapeID":"DIS009","shapeGroup":"119","shapeType":"DISP"},"geometry":{"type":"Polygon","coordinates":[[[81.02851943800005,30.232563226000025],[81.02938816600005,30.19495316800004],[80.92473893400006,30.188827657000047],[80.92603004200004,30.235268870000027],[81.02851943800005,30.232563226000025]]]}}]};

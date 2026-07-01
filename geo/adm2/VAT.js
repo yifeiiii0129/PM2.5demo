@@ -1,0 +1,2 @@
+window.BOUNDARY_CHUNKS = window.BOUNDARY_CHUNKS || {};
+window.BOUNDARY_CHUNKS["adm2-VAT"] = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"shapeName":"Vatican City","shapeID":"52476719B53484862947726","shapeGroup":"VAT","shapeType":"ADM0"},"geometry":{"type":"Polygon","coordinates":[[[12.455466,41.907417],[12.454528,41.900183],[12.446829073706908,41.90211355278694],[12.455466,41.907417]]]}}]};

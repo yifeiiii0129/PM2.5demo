@@ -1,0 +1,2 @@
+window.BOUNDARY_CHUNKS = window.BOUNDARY_CHUNKS || {};
+window.BOUNDARY_CHUNKS["adm1-118"] = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"shapeName":"Gaza Strip","shapeID":"DIS008","shapeGroup":"118","shapeType":"DISP"},"geometry":{"type":"Polygon","coordinates":[[[34.267257,31.220052],[34.21869943000007,31.323566476000053],[34.49073536800006,31.594539316000066],[34.5678,31.5414],[34.38496378900004,31.392310102000067],[34.3668,31.290000001000067],[34.267257,31.220052]]]}}]};

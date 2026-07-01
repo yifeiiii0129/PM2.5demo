@@ -1,0 +1,2 @@
+window.BOUNDARY_CHUNKS = window.BOUNDARY_CHUNKS || {};
+window.BOUNDARY_CHUNKS["adm2-120"] = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"shapeName":"Isla Brasilera","shapeID":"DIS010","shapeGroup":"120","shapeType":"DISP"},"geometry":{"type":"Polygon","coordinates":[[[-57.64509303099999,-30.18021889199997],[-57.604977048999956,-30.18363790999996],[-57.64848012199997,-30.19384122899993],[-57.64509303099999,-30.18021889199997]]]}}]};

@@ -1,0 +1,2 @@
+window.BOUNDARY_CHUNKS = window.BOUNDARY_CHUNKS || {};
+window.BOUNDARY_CHUNKS["adm2-127"] = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"shapeName":"Senkakus","shapeID":"DIS017","shapeGroup":"127","shapeType":"DISP"},"geometry":{"type":"Polygon","coordinates":[[[123.46375300000011,25.748195],[123.492363,25.740694001000065],[123.457916,25.736528],[123.46375300000011,25.748195]]]}}]};

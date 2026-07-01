@@ -1,0 +1,2 @@
+window.BOUNDARY_CHUNKS = window.BOUNDARY_CHUNKS || {};
+window.BOUNDARY_CHUNKS["adm1-MCO"] = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"shapeName":"Monaco","shapeID":"64170238B96397749018979","shapeGroup":"MCO","shapeType":"ADM1"},"geometry":{"type":"Polygon","coordinates":[[[7.4268442,43.7305617],[7.430904368993634,43.74895644058139],[7.4385688,43.7513432],[7.4268442,43.7305617]]]}}]};

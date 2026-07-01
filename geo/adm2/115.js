@@ -1,0 +1,2 @@
+window.BOUNDARY_CHUNKS = window.BOUNDARY_CHUNKS || {};
+window.BOUNDARY_CHUNKS["adm2-115"] = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"shapeName":"Dragonja","shapeID":"DIS005","shapeGroup":"115","shapeType":"DISP"},"geometry":{"type":"Polygon","coordinates":[[[13.585256146000063,45.47898404500006],[13.613081750000049,45.462154342000076],[13.581738321000046,45.47649559000007],[13.585256146000063,45.47898404500006]]]}}]};
