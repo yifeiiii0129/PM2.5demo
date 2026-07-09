@@ -1,41 +1,28 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PM2.5 WHO 5 Demo Map</title>
+    <title>PM2.5 Mortality Explorer Version 2</title>
     <link rel="stylesheet" href="./vendor/leaflet.css" />
-    <link rel="stylesheet" href="./styles_leaflet.css" />
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <main class="app">
       <header class="topbar">
         <div>
-          <p class="eyebrow" data-i18n="eyebrow">PM2.5 死亡负担探索器</p>
-          <h1 data-i18n="title">WHO 5 µg/m³ 可避免死亡人数地图</h1>
+          <p class="eyebrow">PM2.5 mortality explorer</p>
+          <h1>Attributable deaths and WHO 5 ug/m3 avoidable burden</h1>
         </div>
         <div class="top-actions">
-          <label class="language-select">
-            <span data-i18n="language">语言</span>
-            <select id="language">
-              <option value="zh">中文</option>
-              <option value="en" selected>English</option>
-            </select>
+          <label class="select-control">
+            <span>Year</span>
+            <select id="yearSelect"></select>
           </label>
-          <label class="language-select">
-            <span data-i18n="ageGroup">年龄段</span>
-            <select id="ageGroup"></select>
+          <label class="select-control">
+            <span>Age</span>
+            <select id="ageSelect"></select>
           </label>
-          <label class="language-select">
-            <span data-i18n="dataYear">数据年份</span>
-            <select id="dataYear">
-              <option value="2020" selected>2020</option>
-            </select>
-          </label>
-          <div class="controls" role="group" aria-label="选择地图层级">
-            <button class="mode-button active" data-mode="country" type="button" data-i18n="countryMode">国家层面</button>
-            <button class="mode-button" data-mode="city" type="button" data-i18n="cityMode">城市层面</button>
-          </div>
         </div>
       </header>
 
@@ -43,90 +30,103 @@
         <div class="map-shell">
           <div class="map-toolbar">
             <div>
-              <strong id="modeTitle">国家层面</strong>
-              <span id="modeSubtitle">颜色越深表示 WHO 标准下可减少比例越高</span>
+              <strong id="modeTitle">Country level</strong>
+              <span id="modeSubtitle">Colors show the selected age group's avoidable share under WHO 5 ug/m3. Click a country to show its modeled cities.</span>
             </div>
             <div class="legend">
               <span></span>
-              <span data-i18n="legend">可减少比例</span>
+              <span>Avoidable share</span>
             </div>
           </div>
-          <div id="map" role="img" aria-label="世界地图可视化"></div>
+          <div id="map" aria-label="World PM2.5 mortality map"></div>
         </div>
 
         <aside class="panel" aria-live="polite">
-          <div class="picker-panel" aria-label="Select location">
+          <div class="picker-panel">
             <label>
-              <span data-i18n="countryPicker">选择国家</span>
+              <span>Search country</span>
+              <input id="countrySearch" list="countrySearchOptions" placeholder="Type an English country name" />
+              <datalist id="countrySearchOptions"></datalist>
+            </label>
+            <label>
+              <span>Country</span>
               <select id="countryPicker"></select>
             </label>
             <label>
-              <span data-i18n="cityPicker">选择城市</span>
+              <span>Search city</span>
+              <input id="citySearch" list="citySearchOptions" placeholder="Type an English city name" />
+              <datalist id="citySearchOptions"></datalist>
+            </label>
+            <label>
+              <span>City</span>
               <select id="cityPicker" disabled></select>
             </label>
           </div>
-          <p class="panel-label" id="selectionType">请选择一个国家</p>
-          <h2 id="selectionName">Hover 或点击地图上的点</h2>
+
+          <p class="panel-label" id="selectionType">Select a country or city</p>
+          <h2 id="selectionName">No location selected</h2>
+
           <div class="metric-grid">
             <div class="metric">
-              <span data-i18n="currentDeaths">当前死亡人数</span>
+              <span>Current PM2.5 deaths</span>
               <strong id="currentDeaths">--</strong>
             </div>
             <div class="metric">
-              <span data-i18n="avoidableDeaths">WHO 5 下可减少</span>
+              <span>Avoidable at WHO 5</span>
               <strong id="avoidableDeaths">--</strong>
             </div>
-            <div class="metric wide">
-              <span data-i18n="avoidableShare">可减少比例</span>
+            <div class="metric">
+              <span>Remaining at WHO 5</span>
+              <strong id="who5Deaths">--</strong>
+            </div>
+            <div class="metric">
+              <span>Avoidable share</span>
               <strong id="avoidableShare">--</strong>
             </div>
-          </div>
-          <div class="detail-list">
-            <div>
-              <span data-i18n="level">数据层级</span>
-              <strong id="detailLevel">Country</strong>
+            <div class="metric">
+              <span>Mean PM2.5</span>
+              <strong id="pm25">--</strong>
             </div>
-            <div>
-              <span data-i18n="location">位置 / 覆盖城市</span>
-              <strong id="detailLocation">--</strong>
+            <div class="metric" id="coverageMetric">
+              <span>City coverage</span>
+              <strong id="coverage">--</strong>
             </div>
           </div>
+
           <div class="age-table-wrap">
-            <h3 data-i18n="ageBreakdown">年龄段明细</h3>
+            <h3>Age breakdown</h3>
             <div id="ageBreakdown" class="age-table"></div>
           </div>
-          <button id="backToWorld" class="back-button" type="button" data-i18n="backToWorld" hidden>返回国家地图</button>
         </aside>
       </section>
 
-      <section class="info-grid" aria-label="Project information">
+      <section class="info-grid">
         <article class="info-panel">
-          <p class="section-label" data-i18n="methodEyebrow">方法</p>
-          <h2 data-i18n="methodTitle">数据与健康模型</h2>
-          <p data-i18n="methodBody">PM2.5 暴露数据结合人口和基线死亡率数据，用于估计细颗粒物导致的过早死亡；健康影响估计使用 GEMM 模型。</p>
+          <p class="section-label">Methods</p>
+          <h2>Version 2 data and health model</h2>
+          <p>
+            Annual PM2.5 fields for 2020-2023 are taken from the version2 data folder and interpolated to the 0.25 degree GEMM grid. All-cause attributable deaths are estimated with GEMM using each year's GBD NCD+LRI baseline mortality, GPW 2020 population, and 2015 SSP1 age fractions. Avoidable deaths use the WHO 5 ug/m3 counterfactual.
+          </p>
         </article>
         <article class="info-panel">
-          <p class="section-label" data-i18n="mapEyebrow">地图说明</p>
-          <h2 data-i18n="mapTitle">边界与覆盖说明</h2>
-          <p data-i18n="mapBody">当前 demo 使用本地 GeoJSON 国家边界和 CARTO/OpenStreetMap 底图，仅用于可视化展示。正式发布前会优先核对 WHO、世界银行或联合国等国际组织认可的边界数据，并特别复核争议地区。城市数量指数据集中的城市点覆盖数，不代表该国真实城市总数。</p>
+          <p class="section-label">Map Notes</p>
+          <h2>Boundaries and city coverage</h2>
+          <p>
+            Country polygons, province/state boundaries, and aggregation masks use the World Bank official boundary files stored in version2/data. City points use SimpleMaps worldcities basic v1.91.1 populated places, and mortality values use the GEMM metro-area output for places above 500,000 people. This city layer is not an official administrative city list; full city matching outputs remain in version2/data/city data.
+          </p>
         </article>
-        <article class="info-panel team-panel">
-          <p class="section-label" data-i18n="teamEyebrow">团队</p>
-          <h2 data-i18n="teamTitle">技术团队与主要贡献者</h2>
-          <p class="duke-mark">Duke University | Nicholas School of the Environment</p>
-          <ul>
-            <li data-i18n="teamDrew">Drew Shindell</li>
-            <li data-i18n="teamYifei">Yifei Yan</li>
-            <li data-i18n="teamQianru">Qianru Zhang</li>
-          </ul>
+        <article class="info-panel">
+          <p class="section-label">Team</p>
+          <h2>Duke University</h2>
+          <p>Drew Shindell, Yifei Yan, Qianru Zhang</p>
         </article>
       </section>
     </main>
 
     <script src="./vendor/leaflet.js"></script>
     <script src="./assets/data.js"></script>
-    <script src="./geo/world.js"></script>
-    <script src="./geo/boundary_index.js"></script>
-    <script src="./app_age.js"></script>
+    <script src="./geo/wb_admin0_simplified.js"></script>
+    <script src="./geo/wb_admin1_simplified.js"></script>
+    <script src="./app_v2.js"></script>
   </body>
 </html>
