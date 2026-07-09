@@ -1,1 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PM2.5 Mortality Explorer Version 2</title>
+    <link rel="stylesheet" href="./vendor/leaflet.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">PM2.5 mortality explorer</p>
+          <h1>Attributable deaths and WHO 5 ug/m3 avoidable burden</h1>
+        </div>
+        <div class="top-actions">
+          <label class="select-control">
+            <span>Year</span>
+            <select id="yearSelect"></select>
+          </label>
+          <label class="select-control">
+            <span>Age</span>
+            <select id="ageSelect"></select>
+          </label>
+        </div>
+      </header>
 
+      <section class="workspace">
+        <div class="map-shell">
+          <div class="map-toolbar">
+            <div>
+              <strong id="modeTitle">Country level</strong>
+              <span id="modeSubtitle">Colors show the selected age group's avoidable share under WHO 5 ug/m3. Click a country to show its modeled cities.</span>
+            </div>
+            <div class="legend">
+              <span></span>
+              <span>Avoidable share</span>
+            </div>
+          </div>
+          <div id="map" aria-label="World PM2.5 mortality map"></div>
+        </div>
+
+        <aside class="panel" aria-live="polite">
+          <div class="picker-panel">
+            <label>
+              <span>Search country</span>
+              <input id="countrySearch" list="countrySearchOptions" placeholder="Type an English country name" />
+              <datalist id="countrySearchOptions"></datalist>
+            </label>
+            <label>
+              <span>Country</span>
+              <select id="countryPicker"></select>
+            </label>
+            <label>
+              <span>Search city</span>
+              <input id="citySearch" list="citySearchOptions" placeholder="Type an English city name" />
+              <datalist id="citySearchOptions"></datalist>
+            </label>
+            <label>
+              <span>City</span>
+              <select id="cityPicker" disabled></select>
+            </label>
+          </div>
+
+          <p class="panel-label" id="selectionType">Select a country or city</p>
+          <h2 id="selectionName">No location selected</h2>
+
+          <div class="metric-grid">
+            <div class="metric">
+              <span>Current PM2.5 deaths</span>
+              <strong id="currentDeaths">--</strong>
+            </div>
+            <div class="metric">
+              <span>Avoidable at WHO 5</span>
+              <strong id="avoidableDeaths">--</strong>
+            </div>
+            <div class="metric">
+              <span>Remaining at WHO 5</span>
+              <strong id="who5Deaths">--</strong>
+            </div>
+            <div class="metric">
+              <span>Avoidable share</span>
+              <strong id="avoidableShare">--</strong>
+            </div>
+            <div class="metric">
+              <span>Mean PM2.5</span>
+              <strong id="pm25">--</strong>
+            </div>
+            <div class="metric" id="coverageMetric">
+              <span>City coverage</span>
+              <strong id="coverage">--</strong>
+            </div>
+          </div>
+
+          <div class="age-table-wrap">
+            <h3>Age breakdown</h3>
+            <div id="ageBreakdown" class="age-table"></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="info-grid">
+        <article class="info-panel">
+          <p class="section-label">Methods</p>
+          <h2>Version 2 data and health model</h2>
+          <p>
+            Annual PM2.5 fields for 2020-2023 are taken from the version2 data folder and interpolated to the 0.25 degree GEMM grid. All-cause attributable deaths are estimated with GEMM using each year's GBD NCD+LRI baseline mortality, GPW 2020 population, and 2015 SSP1 age fractions. Avoidable deaths use the WHO 5 ug/m3 counterfactual.
+          </p>
+        </article>
+        <article class="info-panel">
+          <p class="section-label">Map Notes</p>
+          <h2>Boundaries and city coverage</h2>
+          <p>
+            Country polygons, province/state boundaries, and aggregation masks use the World Bank official boundary files stored in version2/data. City points use SimpleMaps worldcities basic v1.91.1 populated places, and mortality values use the GEMM metro-area output for places above 500,000 people. This city layer is not an official administrative city list; full city matching outputs remain in version2/data/city data.
+          </p>
+        </article>
+        <article class="info-panel">
+          <p class="section-label">Team</p>
+          <h2>Duke University</h2>
+          <p>Drew Shindell, Yifei Yan, Qianru Zhang</p>
+        </article>
+      </section>
+    </main>
+
+    <script src="./vendor/leaflet.js"></script>
+    <script src="./assets/data.js"></script>
+    <script src="./geo/wb_admin0_simplified.js"></script>
+    <script src="./geo/wb_admin1_simplified.js"></script>
+    <script src="./app_v2.js"></script>
+  </body>
+</html>
