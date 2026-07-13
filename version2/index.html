@@ -12,7 +12,7 @@
       <header class="topbar">
         <div>
           <p class="eyebrow">PM2.5 mortality explorer</p>
-          <h1>Attributable deaths and WHO 5 ug/m3 avoidable burden</h1>
+          <h1>PM2.5 attributable deaths and WHO 5 ug/m3 avoidable burden</h1>
         </div>
         <div class="top-actions">
           <label class="select-control">
@@ -68,24 +68,24 @@
 
           <div class="metric-grid">
             <div class="metric">
-              <span>Current PM2.5 deaths</span>
+              <span>Mean PM2.5 concentration</span>
+              <strong id="pm25">--</strong>
+            </div>
+            <div class="metric">
+              <span>Current PM2.5-attributable deaths</span>
               <strong id="currentDeaths">--</strong>
             </div>
             <div class="metric">
-              <span>Avoidable at WHO 5</span>
+              <span>Avoidable deaths at 5 µg/m³</span>
               <strong id="avoidableDeaths">--</strong>
-            </div>
-            <div class="metric">
-              <span>Remaining at WHO 5</span>
-              <strong id="who5Deaths">--</strong>
             </div>
             <div class="metric">
               <span>Avoidable share</span>
               <strong id="avoidableShare">--</strong>
             </div>
             <div class="metric">
-              <span>Mean PM2.5</span>
-              <strong id="pm25">--</strong>
+              <span>Remaining attributable deaths at 5 µg/m³</span>
+              <strong id="who5Deaths">--</strong>
             </div>
             <div class="metric" id="coverageMetric">
               <span>City coverage</span>
@@ -112,7 +112,7 @@
           <p class="section-label">Map Notes</p>
           <h2>Boundaries and city coverage</h2>
           <p>
-            Country polygons, province/state boundaries, and aggregation masks use the World Bank official boundary files stored in version2/data. City points use SimpleMaps worldcities basic v1.91.1 populated places, and mortality values use the GEMM metro-area output for places above 500,000 people. This city layer is not an official administrative city list; full city matching outputs remain in version2/data/city data.
+            Country polygons and aggregation masks use the World Bank official boundary files stored in version2/data. City points use SimpleMaps worldcities basic v1.91.1 populated places, and mortality values use the GEMM metro-area output for places above 500,000 people. This city layer is not an official administrative city list; full city matching outputs remain in version2/data/city data.
           </p>
         </article>
         <article class="info-panel">
@@ -126,7 +126,6 @@
     <script src="./vendor/leaflet.js"></script>
     <script src="./assets/data.js"></script>
     <script src="./geo/wb_admin0_simplified.js"></script>
-    <script src="./geo/wb_admin1_simplified.js"></script>
     <script src="./app_v2.js"></script>
   </body>
 </html>

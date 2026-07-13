@@ -29,7 +29,6 @@ let selectedCountry = null;
 let selectedCity = null;
 let geojson = null;
 let countryLayer = null;
-let provinceLayer = null;
 let cityLayer = null;
 let countryLayersByIso = new Map();
 let countrySearchMap = new Map();
@@ -285,40 +284,42 @@ function drawCountries() {
       });
     },
   }).addTo(map);
-  if (provinceLayer) provinceLayer.bringToFront();
-}
-
-function drawProvinceBoundaries() {
-  if (provinceLayer) provinceLayer.remove();
-  if (!window.WB_ADMIN1_GEOJSON) return;
-  provinceLayer = L.geoJSON(window.WB_ADMIN1_GEOJSON, {
-    interactive: false,
-    style: {
-      color: "#5d6f67",
-      weight: 0.45,
-      opacity: 0.45,
-      fillOpacity: 0,
-    },
-  }).addTo(map);
-  provinceLayer.bringToFront();
 }
 
 function drawCities() {
   if (cityLayer) cityLayer.remove();
   cityLayer = L.layerGroup();
   const list = selectedCountry ? cities().filter((d) => d.iso3 === selectedCountry.iso3) : [];
-  list.forEach((city) => {
-    const marker = L.circleMarker([city.lat, city.lng], {
-      radius: radiusForCity(city),
-      color: "#ffffff",
-      weight: selectedCity && selectedCity.id === city.id ? 2 : 0.7,
-      fillColor: colorForShare(city.avoidableShare),
-      fillOpacity: 0.86,
+  list
+    .sort(
+      (a, b) =>
+        Number(Boolean(selectedCity) && a.id === selectedCity.id) -
+        Number(Boolean(selectedCity) && b.id === selectedCity.id)
+    )
+    .forEach((city) => {
+      const isSelected = Boolean(selectedCity) && selectedCity.id === city.id;
+      const radius = radiusForCity(city);
+      if (isSelected) {
+        L.circleMarker([city.lat, city.lng], {
+          radius: radius + 3,
+          color: "#000000",
+          weight: 1,
+          fillColor: "#000000",
+          fillOpacity: 1,
+          interactive: false,
+        }).addTo(cityLayer);
+      }
+      const marker = L.circleMarker([city.lat, city.lng], {
+        radius,
+        color: isSelected ? "#ffeb3b" : "#ffffff",
+        weight: isSelected ? 1 : 0.7,
+        fillColor: isSelected ? "#ffeb3b" : colorForShare(city.avoidableShare),
+        fillOpacity: isSelected ? 1 : 0.86,
+      });
+      marker.bindTooltip(cityTooltip(city), { className: "map-tooltip", sticky: true });
+      marker.on("click", () => selectCityById(city.id, { zoom: false }));
+      marker.addTo(cityLayer);
     });
-    marker.bindTooltip(cityTooltip(city), { className: "map-tooltip", sticky: true });
-    marker.on("click", () => selectCityById(city.id, { zoom: false }));
-    marker.addTo(cityLayer);
-  });
   cityLayer.addTo(map);
 }
 
@@ -454,7 +455,6 @@ function init() {
     populateCountries();
     populateCities();
     renderPanel();
-    drawProvinceBoundaries();
     drawCountries();
     initEvents();
   });
