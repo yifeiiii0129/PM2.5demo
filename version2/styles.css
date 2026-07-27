@@ -87,6 +87,20 @@ h1 {
   text-transform: uppercase;
 }
 
+.select-control .control-note {
+  max-width: 150px;
+  color: var(--accent-dark);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+select:disabled {
+  color: #7a8580;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 select {
   border: 0;
   border-radius: 6px;
@@ -154,7 +168,7 @@ input {
   left: 56px;
   right: 16px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
   pointer-events: none;
@@ -172,19 +186,61 @@ input {
 
 .legend {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 8px 10px;
   background: rgba(255, 255, 255, 0.9);
 }
 
-.legend span:first-child {
-  width: 88px;
-  height: 10px;
-  border-radius: 99px;
-  background: linear-gradient(90deg, #eef4ea, #9ac8b6, #0f7665, #b4472f);
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-color-row {
+  gap: 4px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 12px;
+  border: 1px solid rgba(23, 32, 28, 0.18);
+  border-radius: 2px;
+}
+
+.swatch-1 { background: #dcefd4; }
+.swatch-2 { background: #a8d2bf; }
+.swatch-3 { background: #4ba58a; }
+.swatch-4 { background: #0f7665; }
+.swatch-5 { background: #b4472f; }
+
+.legend .legend-caption {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.legend-size-row {
+  min-height: 38px;
+  align-items: flex-end;
+}
+
+.size-legend-item {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.legend-circle {
+  display: inline-block;
+  flex: 0 0 auto;
+  border: 1px solid #ffffff;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px rgba(23, 32, 28, 0.28);
 }
 
 .panel {
@@ -240,8 +296,8 @@ input {
   background: #f8faf6;
 }
 
-.metric.is-hidden {
-  display: none;
+.is-hidden {
+  display: none !important;
 }
 
 .metric span {
@@ -257,6 +313,32 @@ input {
   margin-top: 8px;
   font-size: 22px;
   line-height: 1;
+}
+
+.metric-primary {
+  border-color: rgba(15, 118, 101, 0.42);
+  background: #eef7f3;
+}
+
+.metric-primary strong {
+  color: var(--accent-dark);
+  font-size: 25px;
+}
+
+.metric-secondary {
+  background: #fbfcfa;
+}
+
+.metric-secondary strong {
+  font-size: 19px;
+}
+
+.uncertainty {
+  display: block;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
 }
 
 .age-table-wrap {
@@ -282,9 +364,17 @@ input {
   color: var(--ink);
 }
 
+.age-row.age-header {
+  padding-top: 0;
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
 .info-grid {
   display: grid;
-  grid-template-columns: 1.2fr 1.2fr 0.8fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   max-width: 1500px;
   margin: 16px auto 0;
@@ -304,6 +394,52 @@ input {
   line-height: 1.55;
 }
 
+.resources-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 20px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.resources-panel h2 {
+  margin: 0 0 10px;
+}
+
+.resources-panel p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.resources-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 0.7fr);
+  gap: 16px;
+  max-width: 1500px;
+  margin: 16px auto 0;
+}
+
+.references ol {
+  margin: 0;
+  padding-left: 22px;
+  color: var(--muted);
+}
+
+.references li {
+  margin: 0 0 9px;
+  line-height: 1.45;
+}
+
+.references a {
+  color: var(--accent-dark);
+}
+
+sub,
+sup {
+  line-height: 0;
+}
+
 .leaflet-tooltip.map-tooltip {
   border: 1px solid rgba(23, 32, 28, 0.16);
   border-radius: 8px;
@@ -320,7 +456,8 @@ input {
 @media (max-width: 980px) {
   .topbar,
   .workspace,
-  .info-grid {
+  .info-grid,
+  .resources-grid {
     grid-template-columns: 1fr;
   }
 
@@ -338,7 +475,8 @@ input {
   }
 
   .workspace,
-  .info-grid {
+  .info-grid,
+  .resources-grid {
     display: grid;
   }
 
@@ -350,5 +488,32 @@ input {
 
   #map {
     height: 560px;
+  }
+}
+
+@media (max-width: 700px) {
+  .map-toolbar {
+    left: 48px;
+    right: 8px;
+    flex-direction: column;
+  }
+
+  .legend {
+    max-width: 100%;
+  }
+
+  .legend-color-row,
+  .legend-size-row {
+    flex-wrap: wrap;
+  }
+
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 981px) and (max-width: 1250px) {
+  .info-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }

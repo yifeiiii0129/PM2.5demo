@@ -3,6 +3,8 @@
 const els = {
   year: document.querySelector("#yearSelect"),
   age: document.querySelector("#ageSelect"),
+  ageControl: document.querySelector("#ageControl"),
+  ageContext: document.querySelector("#ageContext"),
   country: document.querySelector("#countryPicker"),
   city: document.querySelector("#cityPicker"),
   countrySearch: document.querySelector("#countrySearch"),
@@ -14,13 +16,25 @@ const els = {
   selectionType: document.querySelector("#selectionType"),
   selectionName: document.querySelector("#selectionName"),
   currentDeaths: document.querySelector("#currentDeaths"),
+  currentDeathsInterval: document.querySelector("#currentDeathsInterval"),
+  currentRate: document.querySelector("#currentRate"),
+  currentRateInterval: document.querySelector("#currentRateInterval"),
   avoidableDeaths: document.querySelector("#avoidableDeaths"),
+  avoidableDeathsInterval: document.querySelector("#avoidableDeathsInterval"),
+  avoidableRate: document.querySelector("#avoidableRate"),
+  avoidableRateInterval: document.querySelector("#avoidableRateInterval"),
   who5Deaths: document.querySelector("#who5Deaths"),
+  who5DeathsInterval: document.querySelector("#who5DeathsInterval"),
   avoidableShare: document.querySelector("#avoidableShare"),
+  avoidableShareInterval: document.querySelector("#avoidableShareInterval"),
   pm25: document.querySelector("#pm25"),
   coverageMetric: document.querySelector("#coverageMetric"),
   coverage: document.querySelector("#coverage"),
+  windowAreaMetric: document.querySelector("#windowAreaMetric"),
+  windowArea: document.querySelector("#windowArea"),
+  ageTableWrap: document.querySelector("#ageTableWrap"),
   ageBreakdown: document.querySelector("#ageBreakdown"),
+  sizeLegend: document.querySelector("#sizeLegend"),
 };
 
 let year = "2020";
@@ -33,10 +47,12 @@ let cityLayer = null;
 let countryLayersByIso = new Map();
 let countrySearchMap = new Map();
 let citySearchMap = new Map();
+let citySizeScaleMax = 50000;
 
 const fmt = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 const one = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
 const pct = new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 1 });
+const rateFmt = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
 
 const isoAliases = { ADO: "AND", DRC: "COD", IMY: "IMN", ROM: "ROU", TMP: "TLS", WBG: "PSE" };
 const countryNameAliases = {
@@ -71,20 +87,43 @@ function makeVirtualCountry(iso3) {
   const list = cities().filter((d) => d.iso3 === iso3);
   if (!list.length) return null;
   const population = list.reduce((sum, d) => sum + (d.population || 0), 0);
+  const populationDenominator = list.reduce((sum, d) => sum + (d.population25PlusInWindow || 0), 0);
   const pm25Weight = list.reduce((sum, d) => sum + (d.pm25 || 0) * (d.population || 0), 0);
   const currentDeaths = list.reduce((sum, d) => sum + (d.currentDeaths || 0), 0);
+  const currentDeathsLow = list.reduce((sum, d) => sum + (d.currentDeathsLow || 0), 0);
+  const currentDeathsHigh = list.reduce((sum, d) => sum + (d.currentDeathsHigh || 0), 0);
   const avoidableDeaths = list.reduce((sum, d) => sum + (d.avoidableDeaths || 0), 0);
+  const avoidableDeathsLow = list.reduce((sum, d) => sum + (d.avoidableDeathsLow || 0), 0);
+  const avoidableDeathsHigh = list.reduce((sum, d) => sum + (d.avoidableDeathsHigh || 0), 0);
   const who5Deaths = list.reduce((sum, d) => sum + (d.who5Deaths || 0), 0);
+  const who5DeathsLow = list.reduce((sum, d) => sum + (d.who5DeathsLow || 0), 0);
+  const who5DeathsHigh = list.reduce((sum, d) => sum + (d.who5DeathsHigh || 0), 0);
+  const rate = (value) => (populationDenominator ? (value * 100000) / populationDenominator : null);
   const ages = {};
   DATA.ageGroups.forEach((age) => {
     ages[age.key] =
       age.key === "post25"
         ? {
             label: age.label,
+            populationDenominator,
             currentDeaths,
+            currentDeathsLow,
+            currentDeathsHigh,
+            currentRatePer100k: rate(currentDeaths),
+            currentRatePer100kLow: rate(currentDeathsLow),
+            currentRatePer100kHigh: rate(currentDeathsHigh),
             avoidableDeaths,
+            avoidableDeathsLow,
+            avoidableDeathsHigh,
+            avoidableRatePer100k: rate(avoidableDeaths),
+            avoidableRatePer100kLow: rate(avoidableDeathsLow),
+            avoidableRatePer100kHigh: rate(avoidableDeathsHigh),
             who5Deaths,
+            who5DeathsLow,
+            who5DeathsHigh,
             avoidableShare: currentDeaths ? avoidableDeaths / currentDeaths : null,
+            avoidableShareLow: currentDeathsLow ? avoidableDeathsLow / currentDeathsLow : null,
+            avoidableShareHigh: currentDeathsHigh ? avoidableDeathsHigh / currentDeathsHigh : null,
           }
         : { label: age.label, currentDeaths: null, avoidableDeaths: null, who5Deaths: null, avoidableShare: null };
   });
@@ -163,14 +202,7 @@ function countryMetric(country) {
 }
 
 function cityMetric(city) {
-  return city
-    ? {
-        currentDeaths: city.currentDeaths,
-        avoidableDeaths: city.avoidableDeaths,
-        who5Deaths: city.who5Deaths,
-        avoidableShare: city.avoidableShare,
-      }
-    : null;
+  return city || null;
 }
 
 function formatNumber(value) {
@@ -185,6 +217,30 @@ function formatPercent(value) {
   return value == null ? "--" : pct.format(value);
 }
 
+function formatRate(value) {
+  return value == null ? "--" : rateFmt.format(value);
+}
+
+function formatInterval(low, high, formatter) {
+  return low == null || high == null ? "90% UI unavailable" : `90% UI: ${formatter(low)}–${formatter(high)}`;
+}
+
+function formatArea(value) {
+  return value == null ? "--" : `${fmt.format(value)} km²`;
+}
+
+function updateCitySizeScale() {
+  const maximum = Math.max(...cities().map((city) => city.avoidableDeaths || 0), 1);
+  citySizeScaleMax = maximum;
+  const ticks = [...new Set([1000, 10000, citySizeScaleMax])].filter((value) => value <= citySizeScaleMax);
+  els.sizeLegend.innerHTML = ticks
+    .map((value) => {
+      const diameter = Math.round(radiusForValue(value) * 2);
+      return `<span class="size-legend-item"><span class="legend-circle" style="width:${diameter}px;height:${diameter}px"></span><span>${formatNumber(value)}</span></span>`;
+    })
+    .join("");
+}
+
 function colorForShare(share) {
   if (share == null) return "#edf2ed";
   if (share < 0.3) return "#dcefd4";
@@ -194,9 +250,13 @@ function colorForShare(share) {
   return "#b4472f";
 }
 
+function radiusForValue(value) {
+  const bounded = Math.max(0, Math.min(Number(value) || 0, citySizeScaleMax));
+  return 3 + Math.sqrt(bounded / citySizeScaleMax) * 14;
+}
+
 function radiusForCity(city) {
-  const value = city.avoidableDeaths || 0;
-  return Math.max(3, Math.min(13, 3 + Math.sqrt(value) / 11));
+  return radiusForValue(city.avoidableDeaths);
 }
 
 function countryStyle(feature) {
@@ -215,11 +275,11 @@ function countryTooltip(country, fallbackName) {
   const metric = countryMetric(country);
   const name = country ? countryName(country) : cleanDisplayName(fallbackName);
   if (!country || !metric) return `<strong>${name}</strong><span>No modeled data</span>`;
-  return `<strong>${name}</strong><span>Current: ${formatNumber(metric.currentDeaths)}<br>Avoidable: ${formatNumber(metric.avoidableDeaths)}<br>Share: ${formatPercent(metric.avoidableShare)}</span>`;
+  return `<strong>${name}</strong><span>Attributable mortality rate: ${formatRate(metric.currentRatePer100k)} per 100,000<br>${formatInterval(metric.currentRatePer100kLow, metric.currentRatePer100kHigh, formatRate)}<br>Avoidable rate at 5 μg/m³: ${formatRate(metric.avoidableRatePer100k)} per 100,000<br>Attributable deaths/year: ${formatNumber(metric.currentDeaths)}<br>Avoidable deaths/year: ${formatNumber(metric.avoidableDeaths)}<br>Avoidable share: ${formatPercent(metric.avoidableShare)}</span>`;
 }
 
 function cityTooltip(city) {
-  return `<strong>${cityName(city)}</strong><span>Current: ${formatNumber(city.currentDeaths)}<br>Avoidable: ${formatNumber(city.avoidableDeaths)}<br>PM2.5: ${formatOne(city.pm25)} ug/m3</span>`;
+  return `<strong>${cityName(city)}</strong><span>3 × 3 city-centered window; adults 25+ only<br>Circle is not a city boundary or the window footprint<br>Population-weighted PM₂.₅: ${formatOne(city.pm25)} μg/m³<br>Attributable mortality rate: ${formatRate(city.currentRatePer100k)} per 100,000<br>${formatInterval(city.currentRatePer100kLow, city.currentRatePer100kHigh, formatRate)}<br>Avoidable rate at 5 μg/m³: ${formatRate(city.avoidableRatePer100k)} per 100,000<br>Attributable deaths/year: ${formatNumber(city.currentDeaths)}<br>Avoidable deaths/year: ${formatNumber(city.avoidableDeaths)}<br>Avoidable share: ${formatPercent(city.avoidableShare)}<br>Actual window area: ${formatArea(city.windowAreaKm2)}<br>Valid PM₂.₅ cells: ${formatNumber(city.validPm25Cells)} of ${formatNumber(city.windowCells)}</span>`;
 }
 
 function zoomToCountry(iso3) {
@@ -255,16 +315,18 @@ function selectCountryByIso(iso3, options = {}) {
 function selectCityById(cityId, options = {}) {
   const city = cities().find((d) => d.id === cityId);
   if (!city) return;
+  ageKey = "post25";
+  els.age.value = ageKey;
   if (!selectedCountry || selectedCountry.iso3 !== city.iso3) {
     selectedCountry = countryByIso(city.iso3);
     populateCities();
-    drawCountries();
   }
   selectedCity = city;
   els.country.value = selectedCountry ? selectedCountry.iso3 : "";
   els.countrySearch.value = selectedCountry ? countryName(selectedCountry) : "";
   els.city.value = city.id;
   els.citySearch.value = `${cityName(city)}, ${countryName(selectedCountry)}`;
+  drawCountries();
   drawCities();
   renderPanel();
   if (options.zoom !== false) zoomToCity(city);
@@ -284,6 +346,9 @@ function drawCountries() {
       });
     },
   }).addTo(map);
+  // Age changes rebuild the country polygons. Keep that newly added SVG layer
+  // behind the existing city markers so its fill opacity cannot wash them out.
+  countryLayer.bringToBack();
 }
 
 function drawCities() {
@@ -312,9 +377,9 @@ function drawCities() {
       const marker = L.circleMarker([city.lat, city.lng], {
         radius,
         color: isSelected ? "#ffeb3b" : "#ffffff",
-        weight: isSelected ? 1 : 0.7,
-        fillColor: isSelected ? "#ffeb3b" : colorForShare(city.avoidableShare),
-        fillOpacity: isSelected ? 1 : 0.86,
+        weight: isSelected ? 3 : 0.7,
+        fillColor: colorForShare(city.avoidableShare),
+        fillOpacity: 0.86,
       });
       marker.bindTooltip(cityTooltip(city), { className: "map-tooltip", sticky: true });
       marker.on("click", () => selectCityById(city.id, { zoom: false }));
@@ -371,37 +436,88 @@ function renderAgeTable(country) {
     els.ageBreakdown.innerHTML = "";
     return;
   }
-  els.ageBreakdown.innerHTML = DATA.ageGroups
+  const rows = DATA.ageGroups
     .map((age) => {
       const metric = country.ages[age.key];
-      return `<div class="age-row"><strong>${age.label}</strong><span>${formatNumber(metric ? metric.currentDeaths : null)}</span><span>${formatNumber(metric ? metric.avoidableDeaths : null)}</span><span>${formatPercent(metric ? metric.avoidableShare : null)}</span></div>`;
+      const rateInterval = metric
+        ? formatInterval(metric.currentRatePer100kLow, metric.currentRatePer100kHigh, formatRate)
+        : "";
+      return `<div class="age-row"><strong>${age.label}</strong><span title="${rateInterval}">${formatRate(metric ? metric.currentRatePer100k : null)}</span><span>${formatNumber(metric ? metric.currentDeaths : null)}</span><span>${formatPercent(metric ? metric.avoidableShare : null)}</span></div>`;
     })
     .join("");
+  els.ageBreakdown.innerHTML = `<div class="age-row age-header"><strong>Age</strong><span>Rate/100k</span><span>Deaths</span><span>Avoidable</span></div>${rows}`;
 }
 
 function renderPanel() {
   const useCity = Boolean(selectedCity);
   const item = useCity ? selectedCity : selectedCountry;
   const metric = useCity ? cityMetric(selectedCity) : countryMetric(selectedCountry);
-  els.selectionType.textContent = useCity ? "City metro, adults 25+" : selectedCountry ? "Country" : "Select a country or city";
+  els.age.disabled = useCity;
+  els.ageControl.classList.toggle("city-age-locked", useCity);
+  els.ageContext.textContent = useCity ? "Cities: adults 25+ only" : "";
+  els.ageTableWrap.classList.toggle("is-hidden", useCity);
+  els.modeTitle.textContent = selectedCountry ? "City-centered view" : "Country view";
+  els.modeSubtitle.textContent = selectedCountry
+    ? "Circle color shows avoidable share; circle area uses a square-root scale for avoidable deaths/year. Circles mark city coordinates and do not represent boundaries or window area."
+    : "Country color shows the selected age group's avoidable share at the WHO 5 μg/m³ guideline. Select a country to show city-centered estimates.";
+  els.selectionType.textContent = useCity
+    ? "City-centered 3 × 3 window, adults 25+"
+    : selectedCountry
+      ? "Country"
+      : "Select a country or city";
   els.selectionName.textContent = useCity
     ? `${cityName(selectedCity)}, ${countryName(selectedCountry)}`
     : selectedCountry
       ? countryName(selectedCountry)
       : "No location selected";
   els.currentDeaths.textContent = formatNumber(metric ? metric.currentDeaths : null);
+  els.currentDeathsInterval.textContent = formatInterval(
+    metric ? metric.currentDeathsLow : null,
+    metric ? metric.currentDeathsHigh : null,
+    formatNumber
+  );
+  els.currentRate.textContent = formatRate(metric ? metric.currentRatePer100k : null);
+  els.currentRateInterval.textContent = formatInterval(
+    metric ? metric.currentRatePer100kLow : null,
+    metric ? metric.currentRatePer100kHigh : null,
+    formatRate
+  );
   els.avoidableDeaths.textContent = formatNumber(metric ? metric.avoidableDeaths : null);
+  els.avoidableDeathsInterval.textContent = formatInterval(
+    metric ? metric.avoidableDeathsLow : null,
+    metric ? metric.avoidableDeathsHigh : null,
+    formatNumber
+  );
+  els.avoidableRate.textContent = formatRate(metric ? metric.avoidableRatePer100k : null);
+  els.avoidableRateInterval.textContent = formatInterval(
+    metric ? metric.avoidableRatePer100kLow : null,
+    metric ? metric.avoidableRatePer100kHigh : null,
+    formatRate
+  );
   els.who5Deaths.textContent = formatNumber(metric ? metric.who5Deaths : null);
+  els.who5DeathsInterval.textContent = formatInterval(
+    metric ? metric.who5DeathsLow : null,
+    metric ? metric.who5DeathsHigh : null,
+    formatNumber
+  );
   els.avoidableShare.textContent = formatPercent(metric ? metric.avoidableShare : null);
-  els.pm25.textContent = !item || item.pm25 == null ? "--" : `${formatOne(item.pm25)} ug/m3`;
+  els.avoidableShareInterval.textContent = formatInterval(
+    metric ? metric.avoidableShareLow : null,
+    metric ? metric.avoidableShareHigh : null,
+    formatPercent
+  );
+  els.pm25.textContent = !item || item.pm25 == null ? "--" : `${formatOne(item.pm25)} μg/m³`;
   els.coverageMetric.classList.toggle("is-hidden", Boolean(useCity));
+  els.windowAreaMetric.classList.toggle("is-hidden", !useCity);
   els.coverage.textContent = selectedCountry ? formatNumber(cities().filter((d) => d.iso3 === selectedCountry.iso3).length) : "--";
+  els.windowArea.textContent = useCity ? formatArea(selectedCity.windowAreaKm2) : "--";
   renderAgeTable(useCity ? null : selectedCountry);
 }
 
 function refresh() {
   selectedCountry = selectedCountry ? countryByIso(selectedCountry.iso3) : null;
   selectedCity = null;
+  updateCitySizeScale();
   populateCountries();
   populateCities();
   drawCountries();
@@ -452,6 +568,7 @@ function init() {
 
   ready.then((json) => {
     geojson = json;
+    updateCitySizeScale();
     populateCountries();
     populateCities();
     renderPanel();
