@@ -15,23 +15,17 @@ const els = {
   modeSubtitle: document.querySelector("#modeSubtitle"),
   selectionType: document.querySelector("#selectionType"),
   selectionName: document.querySelector("#selectionName"),
+  selectionContext: document.querySelector("#selectionContext"),
+  avoidableInsight: document.querySelector("#avoidableInsight"),
+  avoidableInsightValue: document.querySelector("#avoidableInsightValue"),
+  avoidableProgressBar: document.querySelector("#avoidableProgressBar"),
   currentDeaths: document.querySelector("#currentDeaths"),
   currentDeathsInterval: document.querySelector("#currentDeathsInterval"),
   currentRate: document.querySelector("#currentRate"),
   currentRateInterval: document.querySelector("#currentRateInterval"),
   avoidableDeaths: document.querySelector("#avoidableDeaths"),
   avoidableDeathsInterval: document.querySelector("#avoidableDeathsInterval"),
-  avoidableRate: document.querySelector("#avoidableRate"),
-  avoidableRateInterval: document.querySelector("#avoidableRateInterval"),
-  who5Deaths: document.querySelector("#who5Deaths"),
-  who5DeathsInterval: document.querySelector("#who5DeathsInterval"),
-  avoidableShare: document.querySelector("#avoidableShare"),
-  avoidableShareInterval: document.querySelector("#avoidableShareInterval"),
   pm25: document.querySelector("#pm25"),
-  coverageMetric: document.querySelector("#coverageMetric"),
-  coverage: document.querySelector("#coverage"),
-  windowAreaMetric: document.querySelector("#windowAreaMetric"),
-  windowArea: document.querySelector("#windowArea"),
   ageTableWrap: document.querySelector("#ageTableWrap"),
   ageBreakdown: document.querySelector("#ageBreakdown"),
   sizeLegend: document.querySelector("#sizeLegend"),
@@ -43,6 +37,7 @@ let selectedCountry = null;
 let selectedCity = null;
 let geojson = null;
 let countryLayer = null;
+let ndlsaLayer = null;
 let cityLayer = null;
 let countryLayersByIso = new Map();
 let countrySearchMap = new Map();
@@ -229,6 +224,53 @@ function formatArea(value) {
   return value == null ? "--" : `${fmt.format(value)} km²`;
 }
 
+function formatPopulationContext(value) {
+  if (value == null) return "--";
+  if (value >= 1_000_000_000) return `${one.format(value / 1_000_000_000)} billion`;
+  if (value >= 1_000_000) return `${one.format(value / 1_000_000)} million`;
+  return formatNumber(value);
+}
+
+function formatAreaContext(value) {
+  if (value == null) return "--";
+  if (value >= 1_000_000) return `${one.format(value / 1_000_000)} million km²`;
+  return formatArea(value);
+}
+
+function renderSelectionContext(items) {
+  els.selectionContext.replaceChildren(
+    ...items.map(({ text, highlight = false, prominent = false }) => {
+      const item = document.createElement(highlight ? "strong" : "span");
+      item.className = highlight
+        ? `selection-context-highlight${prominent ? " selection-context-prominent" : ""}`
+        : "selection-context-item";
+      item.textContent = text;
+      return item;
+    })
+  );
+}
+
+function drawNdlsa() {
+  if (ndlsaLayer) ndlsaLayer.remove();
+  if (!window.WB_NDLSA_GEOJSON) return;
+  ndlsaLayer = L.geoJSON(window.WB_NDLSA_GEOJSON, {
+    style: {
+      color: "#5f6b66",
+      weight: 1.3,
+      dashArray: "5 4",
+      fillColor: "#d8dfdc",
+      fillOpacity: 0.58,
+    },
+    onEachFeature: (feature, layer) => {
+      const name = cleanDisplayName(feature.properties.NAM_0 || "Non-determined legal status area");
+      layer.bindTooltip(
+        `<strong>${name}</strong><span>World Bank non-determined legal status area<br>Excluded from country area and population masks</span>`,
+        { className: "map-tooltip", sticky: true }
+      );
+    },
+  }).addTo(map);
+}
+
 function updateCitySizeScale() {
   const maximum = Math.max(...cities().map((city) => city.avoidableDeaths || 0), 1);
   citySizeScaleMax = maximum;
@@ -275,7 +317,7 @@ function countryTooltip(country, fallbackName) {
   const metric = countryMetric(country);
   const name = country ? countryName(country) : cleanDisplayName(fallbackName);
   if (!country || !metric) return `<strong>${name}</strong><span>No modeled data</span>`;
-  return `<strong>${name}</strong><span>Attributable mortality rate: ${formatRate(metric.currentRatePer100k)} per 100,000<br>${formatInterval(metric.currentRatePer100kLow, metric.currentRatePer100kHigh, formatRate)}<br>Avoidable rate at 5 μg/m³: ${formatRate(metric.avoidableRatePer100k)} per 100,000<br>Attributable deaths/year: ${formatNumber(metric.currentDeaths)}<br>Avoidable deaths/year: ${formatNumber(metric.avoidableDeaths)}<br>Avoidable share: ${formatPercent(metric.avoidableShare)}</span>`;
+  return `<strong>${name}</strong><span>Attributable mortality rate: ${formatRate(metric.currentRatePer100k)} per 100,000<br>${formatInterval(metric.currentRatePer100kLow, metric.currentRatePer100kHigh, formatRate)}<br>Avoidable rate at 5 μg/m³: ${formatRate(metric.avoidableRatePer100k)} per 100,000<br>Attributable deaths/year: ${formatNumber(metric.currentDeaths)}<br>Avoidable deaths/year: ${formatNumber(metric.avoidableDeaths)}<br>Avoidable share: ${formatPercent(metric.avoidableShare)}<br>Fractional-mask population: ${formatNumber(country.population)}<br>Fractional land area: ${formatArea(country.fractionalLandAreaKm2)}</span>`;
 }
 
 function cityTooltip(city) {
@@ -470,6 +512,44 @@ function renderPanel() {
     : selectedCountry
       ? countryName(selectedCountry)
       : "No location selected";
+  if (useCity) {
+    renderSelectionContext([
+      { text: "Adults 25+" },
+      { text: "3 × 3 modeled window" },
+      {
+        text: `Window area ${formatArea(selectedCity.windowAreaKm2)}`,
+        highlight: true,
+        prominent: true,
+      },
+    ]);
+  } else if (selectedCountry) {
+    const context = [];
+    if (selectedCountry.population != null) {
+      context.push({
+        text: `Population ${formatPopulationContext(selectedCountry.population)}`,
+      });
+    }
+    if (selectedCountry.fractionalLandAreaKm2 != null) {
+      context.push({
+        text: `Land area ${formatAreaContext(selectedCountry.fractionalLandAreaKm2)}`,
+      });
+    }
+    context.push({
+      text: `${formatNumber(cities().filter((d) => d.iso3 === selectedCountry.iso3).length)} modeled cities`,
+      highlight: true,
+    });
+    renderSelectionContext(context);
+  } else {
+    renderSelectionContext([
+      { text: "Choose a location to view its exposure and health burden." },
+    ]);
+  }
+
+  const avoidableShare = metric ? metric.avoidableShare : null;
+  els.avoidableInsight.classList.toggle("is-hidden", avoidableShare == null);
+  els.avoidableInsightValue.textContent = formatPercent(avoidableShare);
+  els.avoidableProgressBar.style.width =
+    avoidableShare == null ? "0%" : `${Math.max(0, Math.min(100, avoidableShare * 100))}%`;
   els.currentDeaths.textContent = formatNumber(metric ? metric.currentDeaths : null);
   els.currentDeathsInterval.textContent = formatInterval(
     metric ? metric.currentDeathsLow : null,
@@ -488,29 +568,7 @@ function renderPanel() {
     metric ? metric.avoidableDeathsHigh : null,
     formatNumber
   );
-  els.avoidableRate.textContent = formatRate(metric ? metric.avoidableRatePer100k : null);
-  els.avoidableRateInterval.textContent = formatInterval(
-    metric ? metric.avoidableRatePer100kLow : null,
-    metric ? metric.avoidableRatePer100kHigh : null,
-    formatRate
-  );
-  els.who5Deaths.textContent = formatNumber(metric ? metric.who5Deaths : null);
-  els.who5DeathsInterval.textContent = formatInterval(
-    metric ? metric.who5DeathsLow : null,
-    metric ? metric.who5DeathsHigh : null,
-    formatNumber
-  );
-  els.avoidableShare.textContent = formatPercent(metric ? metric.avoidableShare : null);
-  els.avoidableShareInterval.textContent = formatInterval(
-    metric ? metric.avoidableShareLow : null,
-    metric ? metric.avoidableShareHigh : null,
-    formatPercent
-  );
   els.pm25.textContent = !item || item.pm25 == null ? "--" : `${formatOne(item.pm25)} μg/m³`;
-  els.coverageMetric.classList.toggle("is-hidden", Boolean(useCity));
-  els.windowAreaMetric.classList.toggle("is-hidden", !useCity);
-  els.coverage.textContent = selectedCountry ? formatNumber(cities().filter((d) => d.iso3 === selectedCountry.iso3).length) : "--";
-  els.windowArea.textContent = useCity ? formatArea(selectedCity.windowAreaKm2) : "--";
   renderAgeTable(useCity ? null : selectedCountry);
 }
 
@@ -572,6 +630,7 @@ function init() {
     populateCountries();
     populateCities();
     renderPanel();
+    drawNdlsa();
     drawCountries();
     initEvents();
   });
