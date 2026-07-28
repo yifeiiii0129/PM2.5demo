@@ -1,28 +1,102 @@
-# PM2.5 WHO 5 Demo Map
+# PM₂.₅ Mortality Explorer — Web Demo Version 2
 
-双击 `open_demo.bat` 或直接打开 `index.html` 即可运行。
+Run locally from this folder:
 
-这个 demo 使用 `assets/data.js` 中的静态数据，不需要安装依赖，也不需要启动服务器。
+```bash
+python -m http.server 8765 --bind 127.0.0.1
+```
 
-当前版本：
+Then open:
 
-- 国家层面：使用真实国家边界填色展示当前死亡人数、WHO 5 下可减少死亡人数和比例。
-- 城市层面：先点击国家，再显示该国城市点；地图支持缩放和平移。
-- 右上角按钮表示地图视图：`国家地图 / 城市点图`，不等同于右侧面板当前数据对象。
-- 点击国家后会进入城市点图，但右侧先显示该国家汇总；点击城市点后右侧才切换为城市数据。
-- 右上角可以在中文和英文界面之间切换。
-- 右上角可以选择年龄段：`总计 25+`、`25-29`、`30-34` ... `80+`。
-- 右侧面板会同时显示当前选择年龄段的数值，以及所有年龄段明细。
-- 中文界面会优先显示中文国家/地区名；中国大陆、台湾和部分常见国际城市也会显示中文城市名。
-- 台湾边界在界面中显示为 `中国台湾 / China Taiwan`，并作为地区处理，不作为国家处理。
-- 点击地图上的点会在右侧面板显示详细数值。
+```text
+http://127.0.0.1:8765/
+```
 
-说明：
+Main files:
 
-- 国家边界文件在 `geo/world.js`。
-- `post25` 在原始输出中表示 25 岁及以上总计，不是 25 岁之前。
-- 之前英国没有显示数据，是因为旧边界文件把英国写成 `England`；现在已替换为 Natural Earth 国家边界，并可匹配 `United Kingdom`。
-- South Sudan、Kosovo 等空白区域是因为国家死亡数据源中没有单独结果。它们会保留为无数据区域，不会套用其他国家数值。
-- 国家值是全国网格总和；城市值只代表该城市及周边网格。因此某国即使只展示 1 个城市，国家值也不应等于该城市值。
-- Leaflet 已下载到 `vendor/`，不需要安装 npm。
-- 底图瓦片来自 CARTO/OpenStreetMap，联网时会显示更详细的底图；离线时国家边界和数据仍可显示。
+- `index.html`: page layout
+- `app_v2.js`: map interaction, selectors, legends, country/city panels
+- `styles.css`: visual styling
+- `assets/data.js`: generated 2020–2023 PM₂.₅ + GEMM mortality data
+- `geo/wb_admin0_simplified.geojson`: simplified World Bank Admin0 boundaries
+- `downloads/`: downloadable country, city-centered, and window-sensitivity CSV files
+
+Data build steps:
+
+1. Build the fractional country masks from the project root:
+
+   ```bash
+   python processing/build_fractional_country_masks.py \
+     --grid "web_demo_version2/data/country mask/admin0/wb_admin0_iso3_codes_025x025.nc" \
+     --boundaries "web_demo_version2/data/map boundary/world bank official boundaries/World Bank Official Boundaries - Admin 0/WB_GAD_ADM0.shp" \
+     --ndlsa "web_demo_version2/data/map boundary/world bank official boundaries/World Bank Official Boundaries - NDLSA/WB_GAD_ADM0_NDLSA.shp" \
+     --country-table "web_demo_version2/data/country mask/admin0/wb_admin0_iso3_codes_025x025.country_table.csv" \
+     --population "web_demo_version2/data/population/gpw-v4-population-count-adjusted-to-2015-unwpp-country-totals-rev11_2020_30_sec_tif/gpw_v4_population_count_adjusted_to_2015_unwpp_country_totals_rev11_2020_30_sec.tif" \
+     --out "web_demo_version2/data/country mask/admin0/wb_admin0_fractional_masks_025x025.nc"
+   ```
+
+2. `../processing/prepare_version2_gemm_inputs.py`
+3. `../../Impacts-master/ORGANIZED/impacts_driver/impacts_driver.py ../model_inputs/version2_current.yaml`
+4. `../../Impacts-master/ORGANIZED/impacts_driver/impacts_driver.py ../model_inputs/version2_who5cf.yaml`
+5. `build_version2_mortality_web_data.py`
+
+Country PM₂.₅ uses exact polygon/grid-cell area fractions. Country population
+and gridded mortality use the GPW 2020 30 arc-second population-weighted mask.
+World Bank NDLSA polygons remain separate and unassigned. The fine-grid
+aggregation design follows
+[Drew Pendergrass' masking utility](https://github.com/drewpendergrass/masking).
+
+The corrected model outputs are written to `model_outputs/current_validpm` and
+`model_outputs/who5cf_validpm`. The preprocessing step excludes the source
+PM₂.₅ value `-999` before normalized linear interpolation; output cells without
+valid source support remain zero only for compatibility with the legacy GEMM
+driver. `PM25_source_weight` records which output cells have valid source
+support.
+
+City-centered method:
+
+- Eligible populated places have source population above 500,000.
+- Each estimate uses the model cell nearest the city coordinate and the eight
+  surrounding cells (a 3 × 3 window on the 0.25° grid).
+- Annual deaths are summed. City PM₂.₅ is population-weighted over cells with
+  valid source support and population.
+- City mortality rates use the estimated population aged 25+ in the window as
+  their denominator and are reported per 100,000 people.
+- The payload includes the GEMM mean and 5th/95th percentiles, displayed as a
+  90% uncertainty interval. These intervals represent uncertainty in the GEMM
+  concentration-response parameters, not all input or spatial uncertainties.
+- Non-finite mortality cells are excluded without rescaling.
+- Circles mark coordinates only. Five discrete colors encode avoidable share
+  and circle area uses a square-root scale for avoidable deaths/year based on
+  the selected year's data range; neither encodes a city boundary or window
+  area. Nearby windows can overlap.
+- Actual window area is calculated from latitude/longitude cell bounds and is
+  included for every city.
+
+Run the sensitivity analysis after the two GEMM scenarios finish:
+
+```bash
+python ../analysis/analyze_city_window_sensitivity.py
+```
+
+It writes all-city values and ranks, a representative coastal/inland subset,
+window correlations, and method metadata under
+`../analysis/city_window_sensitivity_results/`.
+
+Projection decision: the interactive map remains in Leaflet's EPSG:3857 Web
+Mercator because the CARTO raster tiles use that CRS. Robinson would require a
+different/reprojected tile layer. Analytical window areas do not depend on the
+display projection.
+
+Notes:
+
+- Country panels include age-specific rates, counts, avoidable shares, and
+  uncertainty intervals.
+- City panels show adults aged 25+ only. The age selector is disabled and the
+  age-breakdown table is hidden while a city is selected.
+- Population is fixed at GPW 2020 and age structure at SSP1 2015 in every
+  displayed year, so year-to-year changes should not be interpreted as complete
+  demographic trends.
+- The browser payload includes 1,430 populated places above the 500,000
+  source-population threshold whose modeled 3 × 3 window has a non-zero
+  population aged 25+.
