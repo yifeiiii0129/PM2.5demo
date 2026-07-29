@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PM₂.₅ Mortality Explorer Version 3</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">PM<sub>2.5</sub> mortality explorer</p>
+          <h1>PM<sub>2.5</sub>-attributable deaths and burden avoidable at 5 μg/m<sup>3</sup></h1>
+        </div>
+        <div class="top-actions">
+          <label class="select-control">
+            <span>Year</span>
+            <select id="yearSelect"></select>
+          </label>
+          <label class="select-control" id="ageControl">
+            <span>Age</span>
+            <select id="ageSelect"></select>
+            <small id="ageContext" class="control-note"></small>
+          </label>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <div class="map-shell">
+          <div class="map-toolbar">
+            <div>
+              <strong id="modeTitle">Country view</strong>
+              <span id="modeSubtitle">Country color shows the selected age group's avoidable share at the WHO 5 μg/m³ guideline. Select a country to show city-centered estimates.</span>
+            </div>
+            <div class="legend" aria-label="Map legend">
+              <div class="legend-row legend-color-row">
+                <span class="legend-swatch swatch-1"></span><span>&lt;30%</span>
+                <span class="legend-swatch swatch-2"></span><span>30–50%</span>
+                <span class="legend-swatch swatch-3"></span><span>50–65%</span>
+                <span class="legend-swatch swatch-4"></span><span>65–78%</span>
+                <span class="legend-swatch swatch-5"></span><span>≥78%</span>
+              </div>
+              <span class="legend-caption">Color: avoidable share at 5 μg/m³</span>
+              <div class="legend-row legend-size-row" id="sizeLegend"></div>
+              <span class="legend-caption">Circle area: avoidable deaths/year</span>
+            </div>
+          </div>
+          <div id="map" aria-label="World PM₂.₅ mortality map">
+            <div class="map-zoom-controls" aria-label="Map zoom controls">
+              <button id="mapZoomIn" type="button" aria-label="Zoom in">+</button>
+              <button id="mapZoomOut" type="button" aria-label="Zoom out">−</button>
+              <button id="mapReset" type="button" aria-label="Reset world view">⌂</button>
+            </div>
+            <div id="mapTooltip" class="map-tooltip" role="tooltip" hidden></div>
+          </div>
+          <p class="map-projection-note">
+            Map displayed using the Robinson projection; geographic calculations were performed on the original latitude–longitude grid.
+          </p>
+        </div>
+
+        <aside class="panel" aria-live="polite">
+          <div class="picker-panel">
+            <label>
+              <span>Search country</span>
+              <input id="countrySearch" list="countrySearchOptions" placeholder="Type an English country name" />
+              <datalist id="countrySearchOptions"></datalist>
+            </label>
+            <label>
+              <span>Country</span>
+              <select id="countryPicker"></select>
+            </label>
+            <label>
+              <span>Search city</span>
+              <input id="citySearch" list="citySearchOptions" placeholder="Type an English city name" />
+              <datalist id="citySearchOptions"></datalist>
+            </label>
+            <label>
+              <span>City</span>
+              <select id="cityPicker" disabled></select>
+            </label>
+          </div>
+
+          <p class="panel-label" id="selectionType">Select a country or city</p>
+          <h2 id="selectionName">No location selected</h2>
+          <p class="selection-context" id="selectionContext"></p>
+
+          <div class="avoidable-insight is-hidden" id="avoidableInsight">
+            <div class="avoidable-insight-copy">
+              <strong id="avoidableInsightValue">--</strong>
+              <span>of attributable deaths could be avoided at the WHO guideline of 5 μg/m<sup>3</sup></span>
+            </div>
+            <div class="avoidable-progress" aria-hidden="true">
+              <span id="avoidableProgressBar"></span>
+            </div>
+          </div>
+
+          <div class="metric-grid">
+            <div class="metric">
+              <span>Mean PM<sub>2.5</sub> concentration</span>
+              <strong id="pm25">--</strong>
+            </div>
+            <div class="metric metric-primary">
+              <span>Attributable mortality rate per 100,000</span>
+              <strong id="currentRate">--</strong>
+              <small id="currentRateInterval" class="uncertainty">--</small>
+            </div>
+            <div class="metric metric-secondary">
+              <span>Current attributable deaths/year</span>
+              <strong id="currentDeaths">--</strong>
+              <small id="currentDeathsInterval" class="uncertainty">--</small>
+            </div>
+            <div class="metric metric-primary">
+              <span>Avoidable deaths/year at 5 μg/m<sup>3</sup></span>
+              <strong id="avoidableDeaths">--</strong>
+              <small id="avoidableDeathsInterval" class="uncertainty">--</small>
+            </div>
+          </div>
+
+          <div class="age-table-wrap" id="ageTableWrap">
+            <h3>Age breakdown</h3>
+            <div id="ageBreakdown" class="age-table"></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="info-grid">
+        <article class="info-panel">
+          <p class="section-label">Methods</p>
+          <h2>Version 3 data and health model</h2>
+          <p>
+            Annual PM<sub>2.5</sub> fields for 2020–2023 are regridded to 0.25° × 0.25° after treating −999 as missing. GEMM estimates all-cause PM<sub>2.5</sub>-attributable mortality among adults aged 25+ using each year’s GBD NCD+LRI baseline mortality. GPW 2020 population and SSP1 2015 age structure are held constant, so year-to-year differences reflect changes in PM<sub>2.5</sub> and baseline mortality rather than complete demographic trends. Country concentrations use exact World Bank polygon-to-grid area fractions; country population and gridded mortality use a GPW 2020 30 arc-second population-weighted mask. World Bank non-determined legal status areas remain unassigned and are shown separately. City-window concentrations are population-weighted. Avoidable burden compares current exposure with the WHO guideline of 5 μg/m<sup>3</sup>. Displayed 90% uncertainty intervals are the 5th–95th percentiles from GEMM parameters and do not include uncertainty in PM<sub>2.5</sub>, population, baseline mortality, or spatial representation.
+          </p>
+        </article>
+        <article class="info-panel">
+          <p class="section-label">City-centered method</p>
+          <h2>Nine grid cells, not a city boundary</h2>
+          <p>
+            Each city estimate uses the grid cell nearest its coordinate plus the eight surrounding cells. At 35° latitude this 3 × 3 window covers approximately 5,697 km²; the selected city’s actual latitude-adjusted window area is shown in the panel. Administrative extents vary widely: for illustration, Paris proper is about <strong>105 km²</strong>, New York City about <strong>783 km²</strong> (about <strong>778 km²</strong> of land), Beijing municipality about <strong>16,410 km²</strong>, Shanghai municipality about <strong>6,340 km²</strong>, and Shenzhen about <strong>1,997 km²</strong>. Exact values depend on the boundary definition and treatment of water. Because the fixed 3 × 3 window is not clipped to administrative boundaries, it can extend far beyond a compact city such as Paris but cover only part of a geographically large municipality such as Beijing. It may therefore overrepresent surrounding areas for compact cities and underrepresent the full administrative extent of large municipalities. Results should be interpreted as city-centered gridded estimates, not city-boundary totals. Deaths are summed across the window; PM<sub>2.5</sub> is population-weighted over cells with valid PM<sub>2.5</sub> support and population. Missing mortality cells are excluded without rescaling. Circles mark city coordinates only: color represents avoidable share and size represents avoidable deaths/year. Circles do not show city boundaries or window area, and nearby windows may overlap.
+          </p>
+        </article>
+      </section>
+
+      <section class="resources-grid">
+        <article class="resources-panel references">
+          <p class="section-label">References and data sources</p>
+          <h2>Methods, inputs and licenses</h2>
+          <ol>
+            <li>
+              Washington University Atmospheric Composition Analysis Group,
+              <a href="https://sites.wustl.edu/acag/surface-pm2-5/" target="_blank" rel="noopener">Satellite-derived PM<sub>2.5</sub>, V6.GL.02.04</a>;
+              Shen, S., Li, C., van Donkelaar, A., Jacobs, N., Wang, C. and Martin, R. V. (2024), “Enhancing Global Estimation of Fine Particulate Matter Concentrations by Including Geophysical a Priori Information in Deep Learning,” <em>ACS ES&amp;T Air</em> 1(5):332–345,
+              <a href="https://doi.org/10.1021/acsestair.3c00054" target="_blank" rel="noopener">doi:10.1021/acsestair.3c00054</a>.
+            </li>
+            <li>
+              Burnett et al. (2018), “Global estimates of mortality associated with long-term exposure to outdoor fine particulate matter,”
+              <a href="https://doi.org/10.1073/pnas.1803222115" target="_blank" rel="noopener">PNAS, doi:10.1073/pnas.1803222115</a>.
+            </li>
+            <li>
+              Global Burden of Disease Collaborative Network (2024), <em>Global Burden of Disease Study 2023 Results</em>. Seattle, WA: Institute for Health Metrics and Evaluation (IHME),
+              <a href="https://vizhub.healthdata.org/gbd-results/" target="_blank" rel="noopener">GBD Results Tool</a>.
+            </li>
+            <li>
+              CIESIN, Gridded Population of the World v4, Revision 11, population count adjusted to 2015 UN WPP totals,
+              <a href="https://doi.org/10.7927/H4PN93PB" target="_blank" rel="noopener">doi:10.7927/H4PN93PB</a>.
+            </li>
+            <li>
+              KC, S. and Lutz, W. (2017), “The human core of the Shared Socioeconomic Pathways: Population scenarios by age, sex and level of education for all countries to 2100,” <em>Global Environmental Change</em> 42:181–192,
+              <a href="https://doi.org/10.1016/j.gloenvcha.2014.06.004" target="_blank" rel="noopener">doi:10.1016/j.gloenvcha.2014.06.004</a>;
+              <a href="https://iiasa.ac.at/models-tools-data/ssp" target="_blank" rel="noopener">IIASA SSP database</a>, SSP1 population by age.
+            </li>
+            <li>
+              World Health Organization (2021),
+              <a href="https://www.who.int/publications/i/item/9789240034228/" target="_blank" rel="noopener">Global Air Quality Guidelines</a>, annual PM<sub>2.5</sub> guideline of 5 μg/m<sup>3</sup>.
+            </li>
+            <li>
+              <a href="https://simplemaps.com/data/world-cities" target="_blank" rel="noopener">SimpleMaps Basic World Cities Database</a>, version 1.91.1,
+              <a href="https://simplemaps.com/data/license" target="_blank" rel="noopener">CC BY 4.0</a>.
+            </li>
+            <li>
+              Pendergrass, D.,
+              <a href="https://github.com/drewpendergrass/masking" target="_blank" rel="noopener">masking: gridded country and region masks</a>.
+              The area- and population-fraction workflow is adapted to this site’s World Bank boundaries and GPW 2020 30 arc-second population raster.
+            </li>
+            <li>
+              <a href="https://datacatalog.worldbank.org/search/dataset/0038272/world-bank-official-boundaries" target="_blank" rel="noopener">World Bank Official Boundaries</a>, CC BY 4.0. Boundaries and names are for visualization and do not imply a position on legal status or delimitation.
+            </li>
+          </ol>
+        </article>
+
+        <article class="resources-panel team-panel">
+          <p class="section-label">Team</p>
+          <h2>Duke University</h2>
+          <p>Drew Shindell, Yifei Yan, Qianru Zhang</p>
+        </article>
+      </section>
+    </main>
+
+    <script src="./vendor/d3.v7.min.js"></script>
+    <script src="./vendor/d3-geo-projection.v4.min.js"></script>
+    <script src="./assets/data.js"></script>
+    <script src="./geo/wb_admin0_simplified.js"></script>
+    <script src="./geo/wb_ndlsa_simplified.js"></script>
+    <script src="./app_v3.js"></script>
+  </body>
+</html>
