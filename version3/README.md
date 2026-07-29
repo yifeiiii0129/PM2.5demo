@@ -65,16 +65,17 @@ City-centered method:
 
 - Eligible populated places have source population above 500,000.
 - Each estimate uses the model cell nearest the city coordinate and the eight
-  surrounding cells (a 3 × 3 window on the 0.25° grid).
+  surrounding cells (a 3 × 3 window on the 0.25° grid). At 35° latitude, the
+  window covers approximately 75 x 75 km, or 5,700 km².
 - Administrative extents vary widely: Paris proper is approximately 105 km²;
-  New York City approximately 783 km² (about 778 km² of land); Beijing
-  municipality approximately 16,410 km²; Shanghai municipality approximately
-  6,340 km²; and Shenzhen approximately 1,997 km². Exact values depend on the
-  boundary definition and treatment of water.
+  New York City approximately 783 km²; Beijing municipality approximately
+  16,410 km²; Shanghai municipality approximately 6,340 km²; and Shenzhen
+  approximately 1,997 km². Exact values depend on the boundary definition and
+  treatment of water.
 - Because the fixed window is not clipped to administrative boundaries, it may
   overrepresent surrounding areas for compact cities and underrepresent the
   full extent of geographically large municipalities. Results are
-  city-centered gridded estimates, not city-boundary totals.
+  city-centered metropolitan region estimates, not city-boundary totals.
 - Annual deaths are summed. City PM₂.₅ is population-weighted over cells with
   valid source support and population.
 - City mortality rates use the estimated population aged 25+ in the window as

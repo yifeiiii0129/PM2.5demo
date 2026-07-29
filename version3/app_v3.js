@@ -36,7 +36,7 @@ const els = {
   mapReset: document.querySelector("#mapReset"),
 };
 
-let year = "2020";
+let year = "2023";
 let ageKey = "post25";
 let selectedCountry = null;
 let selectedCity = null;
