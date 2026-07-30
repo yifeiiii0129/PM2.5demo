@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PM₂.₅ Mortality Explorer Version 3</title>
+    <title>PM₂.₅ Mortality Explorer</title>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="./styles.css" />
   </head>
@@ -32,7 +32,7 @@
           <div class="map-toolbar">
             <div>
               <strong id="modeTitle">Country view</strong>
-              <span id="modeSubtitle">Country color shows the selected age group's avoidable share at the WHO 5 μg/m³ guideline. Select a country to show city-centered estimates.</span>
+              <span id="modeSubtitle">Country color shows the selected age group's avoidable share at the WHO 5 μg/m³ guideline. Select a country to show city-centered metropolitan region estimates.</span>
             </div>
             <div class="legend" aria-label="Map legend">
               <div class="legend-row legend-color-row">
@@ -128,7 +128,7 @@
       <section class="info-grid">
         <article class="info-panel">
           <p class="section-label">Methods</p>
-          <h2>Version 3 data and health model</h2>
+          <h2>Data and health model</h2>
           <p>
             Annual PM<sub>2.5</sub> fields for 2020–2023 are regridded to 0.25° × 0.25° after treating −999 as missing. GEMM estimates all-cause PM<sub>2.5</sub>-attributable mortality among adults aged 25+ using each year’s GBD NCD+LRI baseline mortality. GPW 2020 population and SSP1 2015 age structure are held constant, so year-to-year differences reflect changes in PM<sub>2.5</sub> and baseline mortality rather than complete demographic trends. Country concentrations use exact World Bank polygon-to-grid area fractions; country population and gridded mortality use a GPW 2020 30 arc-second population-weighted mask. World Bank non-determined legal status areas remain unassigned and are shown separately. City-window concentrations are population-weighted. Avoidable burden compares current exposure with the WHO guideline of 5 μg/m<sup>3</sup>. Displayed 90% uncertainty intervals are the 5th–95th percentiles from GEMM parameters and do not include uncertainty in PM<sub>2.5</sub>, population, baseline mortality, or spatial representation.
           </p>

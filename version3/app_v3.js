@@ -428,11 +428,11 @@ function countryTooltip(country, fallbackName) {
   const metric = countryMetric(country);
   const name = country ? countryName(country) : cleanDisplayName(fallbackName);
   if (!country || !metric) return `<strong>${name}</strong><span>No modeled data</span>`;
-  return `<strong>${name}</strong><span>Attributable mortality rate: ${formatRate(metric.currentRatePer100k)} per 100,000<br>${formatInterval(metric.currentRatePer100kLow, metric.currentRatePer100kHigh, formatRate)}<br>Avoidable rate at 5 μg/m³: ${formatRate(metric.avoidableRatePer100k)} per 100,000<br>Attributable deaths/year: ${formatNumber(metric.currentDeaths)}<br>Avoidable deaths/year: ${formatNumber(metric.avoidableDeaths)}<br>Avoidable share: ${formatPercent(metric.avoidableShare)}<br>Fractional-mask population: ${formatNumber(country.population)}<br>Fractional land area: ${formatArea(country.fractionalLandAreaKm2)}</span>`;
+  return `<strong>${name}</strong><span>Attributable mortality rate: ${formatRate(metric.currentRatePer100k)} per 100,000<br>${formatInterval(metric.currentRatePer100kLow, metric.currentRatePer100kHigh, formatRate)}<br>Avoidable rate at 5 μg/m³: ${formatRate(metric.avoidableRatePer100k)} per 100,000<br>Attributable deaths/year: ${formatNumber(metric.currentDeaths)}<br>Avoidable deaths/year: ${formatNumber(metric.avoidableDeaths)}<br>Avoidable share: ${formatPercent(metric.avoidableShare)}<br>Modeled population: ${formatNumber(country.population)}<br>Modeled land area: ${formatArea(country.fractionalLandAreaKm2)}</span>`;
 }
 
 function cityTooltip(city) {
-  return `<strong>${cityName(city)}</strong><span>3 × 3 city-centered window; adults 25+ only<br>Circle is not a city boundary or the window footprint<br>Population-weighted PM₂.₅: ${formatOne(city.pm25)} μg/m³<br>Attributable mortality rate: ${formatRate(city.currentRatePer100k)} per 100,000<br>${formatInterval(city.currentRatePer100kLow, city.currentRatePer100kHigh, formatRate)}<br>Avoidable rate at 5 μg/m³: ${formatRate(city.avoidableRatePer100k)} per 100,000<br>Attributable deaths/year: ${formatNumber(city.currentDeaths)}<br>Avoidable deaths/year: ${formatNumber(city.avoidableDeaths)}<br>Avoidable share: ${formatPercent(city.avoidableShare)}<br>Actual window area: ${formatArea(city.windowAreaKm2)}<br>Valid PM₂.₅ cells: ${formatNumber(city.validPm25Cells)} of ${formatNumber(city.windowCells)}</span>`;
+  return `<strong>${cityName(city)}</strong><span>3 × 3 city-centered window; adults 25+ only<br>Circle is not a city boundary or the window footprint<br>Population-weighted PM₂.₅: ${formatOne(city.pm25)} μg/m³<br>Attributable mortality rate: ${formatRate(city.currentRatePer100k)} per 100,000<br>${formatInterval(city.currentRatePer100kLow, city.currentRatePer100kHigh, formatRate)}<br>Avoidable rate at 5 μg/m³: ${formatRate(city.avoidableRatePer100k)} per 100,000<br>Attributable deaths/year: ${formatNumber(city.currentDeaths)}<br>Avoidable deaths/year: ${formatNumber(city.avoidableDeaths)}<br>Avoidable share: ${formatPercent(city.avoidableShare)}<br>Actual window area: ${formatArea(city.windowAreaKm2)}</span>`;
 }
 
 function showMapTooltip(html, event, anchor = null) {
@@ -879,10 +879,10 @@ function renderPanel() {
   els.ageControl.classList.toggle("city-age-locked", useCity);
   els.ageContext.textContent = useCity ? "Cities: adults 25+ only" : "";
   els.ageTableWrap.classList.toggle("is-hidden", useCity);
-  els.modeTitle.textContent = selectedCountry ? "City-centered view" : "Country view";
+  els.modeTitle.textContent = selectedCountry ? "Metropolitan region estimates" : "Country view";
   els.modeSubtitle.textContent = selectedCountry
     ? "Circle color shows avoidable share; circle area uses a square-root scale for avoidable deaths/year. Circles mark city coordinates and do not represent boundaries or window area."
-    : "Country color shows the selected age group's avoidable share at the WHO 5 μg/m³ guideline. Select a country to show city-centered estimates.";
+    : "Country color shows the selected age group's avoidable share at the WHO 5 μg/m³ guideline. Select a country to show city-centered metropolitan region estimates.";
   els.selectionType.textContent = useCity
     ? "City-centered 3 × 3 window, adults 25+"
     : selectedCountry
